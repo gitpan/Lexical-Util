@@ -1,40 +1,49 @@
-Lexical-Util version 0.01
-=========================
+NAME
 
-The README is used to introduce the module and provide instructions on
-how to install the module, any machine dependencies it may have (for
-example C compilers and installed libraries) and any other information
-that should be provided before the module is installed.
+    Lexical::Util - utilities for lexical item manipulation
 
-A README file is required for CPAN modules since CPAN extracts the
-README file from a module distribution so that people browsing the
-archive can use it get an idea of the modules uses. It is usually a
-good idea to provide version information here so that people can
-decide whether fixes for the module are worth downloading.
+VERSION
+
+    0.7
+
+SYNOPSIS
+
+    use Lexical::Util qw(frame_to_cvref lexalias ref_to_lexical);
+
+    $cvref = frame_to_cvref($level);
+    lexalias($cvref, '$name', \$variable);
+    $ref = ref_to_lexical($cvref, '$name');
+
+DESCRIPTION
+
+    Lexical::Util is a module containing some common routines used by
+    modules dealing with the lexical variables of routines other than
+    their own. They are taken from various sources, including PadWalker,
+    Perl6::Binding, and Lexical::Alias. This module is used in version
+    0.7 and greater of Perl6::Binding, as well as in the
+    Object::Variables and Sub::Declaration packages, to prevent
+    duplication of code.
+
+    This package should not be needed or used by end users.
+
+    Note: this module uses the CvPADLIST and CvDEPTH macros, which are
+    listed in perlintern and not part of the perl API. They work in the
+    versions I've been able to test on (5.6.1 and 5.8.4), but may change
+    in the future. To avoid possible problems, this module tests to see
+    that the Perl version is less than 5.9.0.
 
 INSTALLATION
 
-To install this module type the following:
+    To install this module type the following:
 
-   perl Makefile.PL
-   make
-   make test
-   make install
-
-DEPENDENCIES
-
-This module requires these other modules and libraries:
-
-  blah blah blah
+       perl Makefile.PL
+       make
+       make test
+       make install
 
 COPYRIGHT AND LICENCE
 
-Put the correct copyright and licence information here.
+    Copyright 2004 Kevin Michael Vail
 
-Copyright (C) 2004 by Kevin Michael Vail
-
-This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself, either Perl version 5.8.4 or,
-at your option, any later version of Perl 5 you may have available.
-
-
+    This program is free software. It may be copied and/or redistributed
+    under the same terms as Perl itself.

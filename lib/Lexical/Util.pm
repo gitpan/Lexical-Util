@@ -5,7 +5,7 @@
 ## This program is free software. It may be copied and/or redistributed under
 ## the same terms as Perl itself.
 ##==============================================================================
-## $Id: Util.pm,v 0.6 2004/07/25 04:44:44 kevin Exp $
+## $Id: Util.pm,v 0.7 2004/07/27 02:23:02 kevin Exp $
 ##==============================================================================
 require 5.006;
 
@@ -13,7 +13,7 @@ package ## don't want this indexed yet
 	Lexical::Util;
 use strict;
 use warnings;
-our ($VERSION) = q$Revision: 0.6 $ =~ /Revision:\s+(\S+)/ or $VERSION = '0.0';
+our ($VERSION) = q$Revision: 0.7 $ =~ /Revision:\s+(\S+)/ or $VERSION = '0.0';
 use Carp;
 
 BEGIN {
@@ -60,6 +60,8 @@ in the future. To avoid possible problems, this module tests to see that the
 Perl version is less than 5.9.0.
 
 =head1 EXPORTABLE ROUTINES
+
+Nothing is exported by default, but you can request the following:
 
 =over 4
 
@@ -120,6 +122,9 @@ Kevin Michael Vail <F<kevin>@F<vaildc>.F<net>>
 
 ##==============================================================================
 ## $Log: Util.pm,v $
+## Revision 0.7  2004/07/27 02:23:02  kevin
+## POD change just to bump version number for CPAN.
+##
 ## Revision 0.6  2004/07/25 04:44:44  kevin
 ## Update POD; change the way the version number is computed.
 ##
