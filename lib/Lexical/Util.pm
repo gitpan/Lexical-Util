@@ -5,21 +5,21 @@
 ## This program is free software. It may be copied and/or redistributed under
 ## the same terms as Perl itself.
 ##==============================================================================
-## $Id: Util.pm,v 0.7 2004/07/27 02:23:02 kevin Exp $
+## $Id: Util.pm,v 0.8 2004/07/29 02:41:56 kevin Exp $
 ##==============================================================================
 require 5.006;
 
-package ## don't want this indexed yet
-	Lexical::Util;
+package Lexical::Util;
 use strict;
 use warnings;
-our ($VERSION) = q$Revision: 0.7 $ =~ /Revision:\s+(\S+)/ or $VERSION = '0.0';
+our ($VERSION) = q$Revision: 0.8 $ =~ /Revision:\s+(\S+)/ or $VERSION = '0.0';
 use Carp;
 
 BEGIN {
 	## Check to see that the version of Perl isn't too new.
 	if ($^V && $^V ge 5.9.0) {
-		croak "Lexical::Util not supported on version of Perl past 5.8.x";
+		croak 
+			"Lexical::Util $VERSION not supported past Perl version 5.8.x";
 	}
 }
 
@@ -27,7 +27,7 @@ require XSLoader;
 XSLoader::load('Lexical::Util', $VERSION);
 
 use base qw(Exporter);
-our @EXPORT_OK = qw(frame_to_cvref lexalias ref_to_lexical);
+our @EXPORT_OK = qw(frame_to_cvref lexalias lexical_alias ref_to_lexical);
 
 =head1 NAME
 
@@ -39,6 +39,7 @@ Lexical::Util - utilities for lexical item manipulation
 
 	$cvref = frame_to_cvref($level);
 	lexalias($cvref, '$name', \$variable);
+	$err = lexical_alias($cvref, '$name', \$variable);
 	$ref = ref_to_lexical($cvref, '$name');
 
 =head1 DESCRIPTION
@@ -81,6 +82,14 @@ Creates a lexical alias for a variable called I<$name> pointing to the variable
 I<$value>. I<$cvref> is a code reference returned by L<"frame_to_cvref">. If
 I<$cvref> is B<undef>, this routine dies.
 
+=item lexical_alias
+
+C<< I<$errmsg> = lexical_alias(I<$cvref>, 'I<$name>', I<\$value>); >>
+
+Same as above, but instead of dying on error, it returns an error message. If
+the return value is false, the function succeeded. This can allow more useful
+error messages from modules that call it.
+
 =item ref_to_lexical
 
 C<< I<$ref> = ref_to_lexical(I<$cvref>, 'I<$name>'); >>
@@ -105,6 +114,10 @@ restriction with more research.
 
 =back
 
+=head1 SEE ALSO
+
+L<Perl6::Binding>, L<PadWalker|PadWalker>, L<Lexical::Alias|Lexical::Alias>
+
 =head1 COPYRIGHT AND LICENSE
 
 Copyright 2004 Kevin Michael Vail
@@ -114,7 +127,7 @@ same terms as Perl itself.
 
 =head1 AUTHOR
 
-Kevin Michael Vail <F<kevin>@F<vaildc>.F<net>>
+Kevin Michael Vail <F<kvail>@F<cpan>.F<org>>
 
 =cut
 
@@ -122,6 +135,9 @@ Kevin Michael Vail <F<kevin>@F<vaildc>.F<net>>
 
 ##==============================================================================
 ## $Log: Util.pm,v $
+## Revision 0.8  2004/07/29 02:41:56  kevin
+## Add lexical_alias routine.
+##
 ## Revision 0.7  2004/07/27 02:23:02  kevin
 ## POD change just to bump version number for CPAN.
 ##

@@ -1,9 +1,12 @@
 /*------------------------------------------------------------------------------
  * Lexical::Util.xs - XSUBs for the Lexical::Util package
  *------------------------------------------------------------------------------
- * $Id: Util.xs,v 1.4 2004/07/25 04:39:28 kevin Exp $
+ * $Id: Util.xs,v 1.5 2004/07/29 02:48:17 kevin Exp $
  *------------------------------------------------------------------------------
  * $Log: Util.xs,v $
+ * Revision 1.5  2004/07/29 02:48:17  kevin
+ * Add lexical_alias routine.
+ *
  * Revision 1.4  2004/07/25 04:39:28  kevin
  * Pull out common code into find_var_in_pad function.
  *
@@ -108,6 +111,39 @@ lexalias(SV* cvref, const char *name, SV* value)
 
 	av_store(padv, i, new_sv);
 	SvREFCNT_inc(new_sv);
+
+##==============================================================================
+## lexical_alias - like above, but doesn't die
+##==============================================================================
+SV *
+lexical_alias(SV *cvref, const char *name, SV* value)
+	CODE:
+		AV *padv;			/* Pad values */
+		SV *new_sv;			/* Item referenced by value */
+		I32 i;				/* index variable */
+
+		if (!SvROK(value)) {
+			RETVAL = newSVpvf(
+				"for variable %s, invalid reference passed to lexical_alias",
+				name
+			);
+		} else {
+			new_sv = SvRV(value);
+
+			i = find_var_in_pad(aTHX_ cvref, name, &padv);
+			if (i < 0) {
+				RETVAL = newSVpvf(
+					"variable %s not found in lexical_alias",
+					name
+				);
+			} else {
+				av_store(padv, i, new_sv);
+				SvREFCNT_inc(new_sv);
+				RETVAL = &PL_sv_undef;
+			}
+		}
+	OUTPUT:
+		RETVAL
 
 ##==============================================================================
 ## ref_to_lexical - return a reference to a lexical variable in another
