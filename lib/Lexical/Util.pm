@@ -5,7 +5,7 @@
 ## This program is free software. It may be copied and/or redistributed under
 ## the same terms as Perl itself.
 ##==============================================================================
-## $Id: Util.pm,v 0.2 2004/05/31 04:39:30 kevin Exp $
+## $Id: Util.pm,v 0.4 2004/06/06 01:01:33 kevin Exp $
 ##==============================================================================
 require 5.006;
 
@@ -13,7 +13,16 @@ package ## don't want this indexed yet
 	Lexical::Util;
 use strict;
 use warnings;
-our $VERSION = '0.1';
+our $VERSION = '0.2';
+use Carp;
+
+BEGIN {
+	## Check to see that the version of Perl isn't too new.
+	if ($^V && $^V ge 5.9.0) {
+		croak "Lexical::Util not supported on version of Perl past 5.8.x";
+	}
+}
+
 require XSLoader;
 XSLoader::load('Lexical::Util', $VERSION);
 
@@ -26,7 +35,7 @@ Lexical::Util - utilities for lexical item manipulation
 
 =head1 SYNOPSIS
 
-	use Lexical::Util qw(alias);
+	use Lexical::Util qw(frame_to_cvref lexalias);
 
 	$cvref = frame_to_cvref($level);
 	lexalias($cvref, '$name', \$variable);
@@ -41,6 +50,12 @@ module is used in version 0.7 and greater of Perl6::Binding, as well as in the
 L<fields::aliased|fields::aliased> package, to prevent duplication of code.
 
 This package should I<not> be used by end users.
+
+Note: this module uses the L<CvPADLIST|perlintern/CvPADLIST> and CvDEPTH macros,
+which are listed in L<perlintern|perlintern> and not part of the perl API. They
+work in the versions I've been able to test on (5.6.1 and 5.8.4), but may change
+in the future. To avoid possible problems, this module tests to see that the
+Perl version is less than 5.9.0.
 
 =head1 EXPORTABLE ROUTINES
 
@@ -95,6 +110,12 @@ Kevin Michael Vail <F<kevin>@F<vaildc>.F<net>>
 
 ##==============================================================================
 ## $Log: Util.pm,v $
+## Revision 0.4  2004/06/06 01:01:33  kevin
+## Bump version number.
+##
+## Revision 0.3  2004/06/06 00:46:47  kevin
+## Add check for Perl version >= 5.9.0.
+##
 ## Revision 0.2  2004/05/31 04:39:30  kevin
 ## Modify the documentation to reflect the facts.
 ##

@@ -1,19 +1,13 @@
-# Before `make install' is performed this script should be runnable with
-# `make test'. After `make install' it should work as `perl Lexical-Util.t'
-
-#########################
-
-# change 'tests => 1' to 'tests => last_test_to_print';
+##==============================================================================
+## Lexical-Util.t - test code for Lexical::Util
+##==============================================================================
+## $Id: Lexical-Util.t,v 1.1 2004/06/06 00:51:37 kevin Exp $
+##==============================================================================
 use strict;
 use Test;
 BEGIN { plan tests => 7 };
 use Lexical::Util qw(lexalias frame_to_cvref);
 ok(1); # If we made it this far, we're ok.
-
-#########################
-
-# Insert your test code below, the Test::More module is use()ed here so read
-# its man page ( perldoc Test::More ) for help writing this test script.
 
 sub basic {
 	my ($one, $two, $three);

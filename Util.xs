@@ -51,7 +51,7 @@ lexalias(SV* cvref, char *name, SV* value)
 		croak("first argument to lexalias is supposed to be a code ref or 0");
 	}
 
-	padn = cv ? (AV*)AvARRAY(CvPADLIST(cv))[0] : PL_comppad_name;
+	padn = cv ? (AV*)AvARRAY(CvPADLIST(cv))[0]           : PL_comppad_name;
 	padv = cv ? (AV*)AvARRAY(CvPADLIST(cv))[CvDEPTH(cv)] : PL_comppad;
 
 	/*
