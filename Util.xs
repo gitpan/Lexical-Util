@@ -1,13 +1,26 @@
+/*------------------------------------------------------------------------------
+ * Lexical::Util.xs - XSUBs for the Lexical::Util package
+ *------------------------------------------------------------------------------
+ * $Id: Util.xs,v 1.4 2004/07/25 04:39:28 kevin Exp $
+ *------------------------------------------------------------------------------
+ * $Log: Util.xs,v $
+ * Revision 1.4  2004/07/25 04:39:28  kevin
+ * Pull out common code into find_var_in_pad function.
+ *
+ * Revision 1.3  2004/07/10 01:09:58  kevin
+ * Add ref_to_lexical function.
+ *----------------------------------------------------------------------------*/
 #include "EXTERN.h"
 #include "perl.h"
 #include "XSUB.h"
 
 #include "ppport.h"
 
-/*
+/*------------------------------------------------------------------------------
  * dopoptosub_at - find the index to the specified stack frame
- */
-I32 dopoptosub_at(pTHX_ PERL_CONTEXT *cxstk, I32 start)
+ *----------------------------------------------------------------------------*/
+I32
+dopoptosub_at(pTHX_ PERL_CONTEXT *cxstk, I32 start)
 {
 	dTHR;
 	I32 i;
@@ -27,13 +40,56 @@ I32 dopoptosub_at(pTHX_ PERL_CONTEXT *cxstk, I32 start)
 	return i;
 }
 
-MODULE = Lexical::Util		PACKAGE = Lexical::Util
+/*------------------------------------------------------------------------------
+ * find_var_in_pad - looks for variable named 'name' in the pad associated
+ * with 'cv'. If the return value is >= 0, then *padvalues is set to the
+ * AV * of the proper pad to use.  If the return value is < 0, the specified
+ * variable was not found.
+ *----------------------------------------------------------------------------*/
+I32
+find_var_in_pad(pTHX_ SV *cvref, const char *name, AV **padvalues)
+{
+	dTHR;
+	int i;
+	AV *padv, *padn;
+	CV *cv;
 
+	if (SvROK(cvref)) {
+		cv = (CV*)SvRV(cvref);
+	} else if (SvIOK(cvref) && SvIV(cvref) == 0) {
+		cv = NULL;
+	} else {
+		croak("'cvref' argument must be code ref or 0");
+	}
+
+	padn = cv ? (AV*)AvARRAY(CvPADLIST(cv))[0]           : PL_comppad_name;
+	padv = cv ? (AV*)AvARRAY(CvPADLIST(cv))[CvDEPTH(cv)] : PL_comppad;
+
+	for (i = 0; i <= av_len(padn); ++i) {
+		SV **nameptr = av_fetch(padn, i, 0);
+		if (nameptr) {
+			SV *name_sv = *nameptr;
+			if (SvPOKp(name_sv)) {
+				const char *name_str = SvPVX(name_sv);
+				if (strcmp(name, name_str) == 0) {
+					*padvalues = padv;
+					break;
+				}
+			}
+		}
+	}
+	return i >= av_len(padn) ? -1 : i;
+}
+
+MODULE = Lexical::Util		PACKAGE = Lexical::Util
+PROTOTYPES: ENABLE
+
+##==============================================================================
+## lexalias - create a lexical alias, possibly in another stack frame.
+##==============================================================================
 void
-lexalias(SV* cvref, char *name, SV* value)
+lexalias(SV* cvref, const char *name, SV* value)
   CODE:
-	CV* cv;					/* Code reference, or 0 */
-	AV* padn;				/* Pad names */
 	AV* padv;				/* Pad values */
 	SV* new_sv;				/* Item referenced by value */
 	I32 i;					/* index variable */
@@ -43,39 +99,41 @@ lexalias(SV* cvref, char *name, SV* value)
 
 	new_sv = SvRV(value);
 
-	if (SvROK(cvref)) {
-		cv = (CV*)SvRV(cvref);
-	} else if (SvIOK(cvref) && SvIV(cvref) == 0) {
-		cv = NULL;
-	} else {
-		croak("first argument to lexalias is supposed to be a code ref or 0");
-	}
-
-	padn = cv ? (AV*)AvARRAY(CvPADLIST(cv))[0]           : PL_comppad_name;
-	padv = cv ? (AV*)AvARRAY(CvPADLIST(cv))[CvDEPTH(cv)] : PL_comppad;
-
 	/*
 	 * Go through the pad name list and find the one corresponding to 'name'.
 	 */
-	for (i = 0; i <= av_len(padn); ++i) {
-		SV** name_ptr = av_fetch(padn, i, 0);
-		if (name_ptr) {
-			SV* name_sv = *name_ptr;
-			if (SvPOKp(name_sv)) {
-				char *name_str = SvPVX(name_sv);
-				if (strcmp(name, name_str) == 0) {
-					av_store(padv, i, new_sv);
-					SvREFCNT_inc(new_sv);
-					break;
-				}
-			}
-		}
-	}
-
-	if (i > av_len(padn)) {
+	i = find_var_in_pad(aTHX_ cvref, name, &padv);
+	if (i < 0)
 		croak("Variable '%s' not found in lexalias", name);
-	}
 
+	av_store(padv, i, new_sv);
+	SvREFCNT_inc(new_sv);
+
+##==============================================================================
+## ref_to_lexical - return a reference to a lexical variable in another
+## stack frame, by name.
+##==============================================================================
+SV*
+ref_to_lexical(SV *cvref, const char *name)
+  CODE:
+	AV *padv;				/* Pad values */
+	SV *new_sv;				/* The reference we're creating */
+	SV **ref_to_var;		/* The variable we're looking for */
+	I32 i;					/* index variable */
+
+	i = find_var_in_pad(aTHX_ cvref, name, &padv);
+	if (i < 0)
+		croak("variable '%s' not found in ref_to_lexical");
+
+	ref_to_var = av_fetch(padv, i, 0);
+	RETVAL = newRV_inc(*ref_to_var);
+  OUTPUT:
+  	RETVAL
+
+##==============================================================================
+## frame_to_cvref - return the code reference corresponding to the given
+## stack frame.
+##==============================================================================
 SV*
 frame_to_cvref(I32 level)
   CODE:
